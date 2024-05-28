@@ -8,7 +8,7 @@ from scrapy.http import HtmlResponse
 @pytest.mark.asyncio
 async def test_map():
 	async with async_playwright() as p:
-		browser = await p.chromium.launch()
+		browser = await p.chromium.launch(headless = False)
 
 		need = 'hotels'
 		location = 'Sacramento, CA'
@@ -20,6 +20,8 @@ async def test_map():
 
 		search_form = await page.wait_for_selector('form#XmI62e')
 		if search_form:
+			print('search_form is present')
 			return True
 
-		
+		await page.fill('input.fontBodyMedium.searchboxinput.xiQny', 'hotels near Denver, Colorado')
+
