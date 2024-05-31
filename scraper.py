@@ -3,16 +3,7 @@ import asyncio
 from playwright.async_api import async_playwright
 import scrapy
 from scrapy.http import HtmlResponse
-
-async def scroll_to_bottom(page):
-    previous_height = await page.evaluate('document.body.scrollHeight')
-    while True:
-        await page.evaluate('window.scrollTo(0, document.body.scrollHeight)')
-        await asyncio.sleep(2)  # Wait for new content to load
-        new_height = await page.evaluate('document.body.scrollHeight')
-        if new_height == previous_height:
-            break
-        previous_height = new_height
+import time
 
 @pytest.mark.asyncio
 async def test_map():
@@ -34,5 +25,22 @@ async def test_map():
 
         await page.click('button.mL3xi')
         print('search is in progress')
+
+        await page.wait_for_selector('div.Nv2PK.THOPZb.CpccDe')
+
+        await asyncio.sleep(2)
+        print('results first batch on screen')
+
+        current_results = await page.query_selector_all('div.Nv2PK.THOPZb.CpccDe a.hfpxzc')
+        current_results_count = len(current_results)
+        print(current_results_count)
+
+        for result in current_results:
+            await result.click()
+            await asyncio.sleep(5)
+
+        print('just staying on')
+        time.sleep(2)
+        print('going off now')
 
         await browser.close()
