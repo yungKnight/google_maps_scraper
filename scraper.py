@@ -9,7 +9,7 @@ async def test_map():
     async with async_playwright() as p:
         browser = await p.chromium.launch(headless=False)
 
-        need = 'hospitals'
+        need = 'tax advisor'
         location = 'Sacramento, CA'
 
         page = await browser.new_page()
@@ -32,12 +32,21 @@ async def test_map():
         provider_info = []
         has_more_results = True
         load_count = 0
+        processed_results = set()
 
         while has_more_results:
             results = await page.query_selector_all('div.Nv2PK a.hfpxzc')
             new_results_loaded = False
 
-            for result in results:
+            for i in range(len(results)):
+                result = results[i]
+                result_id = await result.get_attribute('href')
+
+                if result_id in processed_results:
+                    continue
+                
+                processed_results.add(result_id)
+
                 await result.click()
                 await asyncio.sleep(3)
 
@@ -47,14 +56,23 @@ async def test_map():
                 detail = response.css('div.m6QErb.WNBkOb.XiKgde div.m6QErb.DxyBCb.kA9KIf.dS8AEf')
                 if detail:
                     name = detail.css('h1.DUwDvf::text').get()
+
                     address = detail.css('div.rogA2c div.Io6YTe::text').get()
+
+                    phone_button = detail.css('button.CsEnBe[data-item-id^="phone:"]')
+                    phone = None
+                    if phone_button:
+                        phone_attr = phone_button.attrib['data-item-id']
+                        phone = phone_attr.split(':')[-1]
+                        
+                    website = detail.css('div.rogA2c.ITvuef div.Io6YTe::text').get()
 
                     if name and address:
                         info = {
                             'name': name,
                             'address': address,
-                            'phone': detail.css('div.RcCs1.fVHpi.w4B1d.NOE9ve.M0S7ae.AG25L:nth-child(3) button.CsEnBe div.AeaXub div.rogA2c div.Io6YTe::text').get(),
-                            'website': detail.css('div.rogA2c.ITvuef div.Io6YTe::text').get()
+                            'phone': phone,
+                            'website': website
                         }
                         provider_info.append(info)
 
@@ -64,12 +82,10 @@ async def test_map():
             new_results = await page.query_selector_all('div.Nv2PK a.hfpxzc')
             if len(new_results) > len(results):
                 new_results_loaded = True
-                results = new_results
                 load_count += 1
                 print(f'Loaded new results {load_count} times')
-                print(f'Current number of results: {len(results)}')
-
-            if not new_results_loaded:
+                print(f'Current number of results: {len(new_results)}')
+            else:
                 has_more_results = False
                 print('No more new results to load')
 
