@@ -9,8 +9,8 @@ async def test_map():
     async with async_playwright() as p:
         browser = await p.chromium.launch(headless=False)
 
-        need = 'tax advisor'
-        location = 'Sacramento, CA'
+        need = input("Enter the service required: ")
+        location = input("Enter the location: ")
 
         page = await browser.new_page()
 
@@ -25,8 +25,8 @@ async def test_map():
         await page.click('button.mL3xi')
         print('Search is in progress')
 
+        await asyncio.sleep(3)
         await page.wait_for_selector('div.Nv2PK')
-        await asyncio.sleep(2)
         print('Results first batch on screen')
 
         provider_info = []
@@ -64,7 +64,7 @@ async def test_map():
                     if phone_button:
                         phone_attr = phone_button.attrib['data-item-id']
                         phone = phone_attr.split(':')[-1]
-                        
+
                     website = detail.css('div.rogA2c.ITvuef div.Io6YTe::text').get()
 
                     if name and address:
