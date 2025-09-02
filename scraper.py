@@ -3,9 +3,18 @@ import asyncio
 from playwright.async_api import async_playwright
 import scrapy
 from scrapy.http import HtmlResponse
+from pyairtable import Api
+
+API_KEY = "patgcI6nlLgS6w8Z1.9db9c4c58b702a724efee2f446642e747df55d99e430de27c23f3d73a1452859"
+BASE_ID = "apphyy1kIeRFwLYWy"
+TABLE_NAME = "schools" 
 
 @pytest.mark.asyncio
 async def test_map():
+    
+    api = Api(API_KEY)
+    table = api.table(BASE_ID, TABLE_NAME)
+
     async with async_playwright() as p:
         browser = await p.chromium.launch(headless=False)
 
@@ -56,7 +65,6 @@ async def test_map():
                 detail = response.css('div.m6QErb.WNBkOb.XiKgde div.m6QErb.DxyBCb.kA9KIf.dS8AEf')
                 if detail:
                     name = detail.css('h1.DUwDvf::text').get()
-
                     address = detail.css('div.rogA2c div.Io6YTe::text').get()
 
                     phone_button = detail.css('button.CsEnBe[data-item-id^="phone:"]')
@@ -69,12 +77,19 @@ async def test_map():
 
                     if name and address:
                         info = {
-                            'name': name,
-                            'address': address,
-                            'phone': phone,
-                            'website': website
+                            "name": name,
+                            "address": address,
+                            "phone": phone,
+                            "website": website
                         }
                         provider_info.append(info)
+
+                        # Save directly into Airtable
+                        try:
+                            table.create(info)
+                            print(f"✅ Saved to Airtable: {name}")
+                        except Exception as e:
+                            print(f"⚠️ Error saving {name}: {e}")
 
             await page.keyboard.press('ArrowDown')
             await asyncio.sleep(3)
@@ -91,5 +106,6 @@ async def test_map():
 
         await browser.close()
 
+        print("\n--- Scraped Results ---")
         for info in provider_info:
             print(info)
