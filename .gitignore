@@ -1,3 +1,4 @@
 knr/ 
 __pycache__/
 test*
+.env
