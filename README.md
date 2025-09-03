@@ -1,4 +1,4 @@
-# Google Maps Business Scraper with Airtable Integration
+# Google Maps Scraper(with Airtable Integration)
 
 A sophisticated web scraper that extracts business information from Google Maps search results and automatically saves or updates records in Airtable. Built with Playwright for reliable web automation and designed to prevent duplicate entries while keeping data fresh.
 
